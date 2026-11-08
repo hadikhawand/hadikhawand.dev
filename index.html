@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hadi Khawand · Software Engineer</title>
+  <meta name="description" content="Hadi Khawand is a software engineer at Technosoft and Computer Science student at NDU (GPA 3.99) building backend systems, databases and optimization engines.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hadikhawand.dev/">
+  <meta property="og:title" content="Hadi Khawand · Software Engineer">
+  <meta property="og:description" content="Backend systems, database design and optimization engines. Software engineer at Technosoft, CS at NDU.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/headshot.jpg">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Hadi Khawand",
+    "url": "https://hadikhawand.dev",
+    "image": "https://hadikhawand.dev/assets/headshot.jpg",
+    "jobTitle": "Software Engineer",
+    "worksFor": { "@type": "Organization", "name": "Technosoft Inc." },
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Notre Dame University - Louaize" },
+    "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="#top">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+        <a href="#contact">Contact</a>
+        <a class="nav-cv" href="Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div id="top" class="container">
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-text">
+          <div class="eyebrow-row">
+            <img class="avatar" src="assets/headshot.jpg" alt="Portrait of Hadi Khawand" width="72" height="72">
+            <p class="eyebrow">Software Engineer @ Technosoft Inc.</p>
+          </div>
+          <h1>Hadi Khawand</h1>
+          <p class="lede">I build backend systems, design databases, and write optimization engines that turn messy real-world constraints into software that works.</p>
+          <ul class="highlights" aria-label="Highlights">
+            <li><span class="live-dot" aria-hidden="true"></span>Now: <strong>Software Engineer, Technosoft</strong></li>
+            <li><strong class="gpa">3.99 GPA</strong>B.S. Computer Science, NDU</li>
+            <li>Graduating <strong>Fall 2026</strong></li>
+          </ul>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#projects">See my work
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn btn-accent-outline" href="Hadi_Khawand_CV.pdf" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+              Download résumé
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/hadikhawand" target="_blank" rel="noopener">GitHub</a>
+            <a class="btn btn-ghost" href="https://linkedin.com/in/hadi-khawand" target="_blank" rel="noopener">LinkedIn</a>
+          </div>
+        </div>
+
+        <!-- Solver demo -->
+        <div class="solver" aria-label="Timetable solver demo">
+          <div class="solver-head">
+            <div>
+              <div class="mono muted small">timetable.mzn</div>
+              <div class="solver-status" id="solver-status" aria-live="polite">Unsolved · rooms double-booked</div>
+            </div>
+            <div class="solver-count">
+              <div class="count-num" id="solver-count">0</div>
+              <div class="muted small">conflicts</div>
+            </div>
+          </div>
+          <div class="solver-grid" id="solver-grid" role="img" aria-label="Weekly timetable grid, Monday to Friday, four time slots"></div>
+          <div class="solver-foot">
+            <div class="legend">
+              <span><i style="background:#A78BFA"></i>CS</span>
+              <span><i style="background:#60A5FA"></i>Biology</span>
+              <span><i style="background:#34D399"></i>Arabic</span>
+              <span><i style="background:#FBBF24"></i>Math</span>
+              <span><i style="background:#F87171"></i>Physics</span>
+            </div>
+            <div class="solver-buttons">
+              <button type="button" class="btn-sm btn-ghost" id="solver-reset">Reset</button>
+              <button type="button" class="btn-sm btn-primary" id="solver-solve">Solve</button>
+            </div>
+          </div>
+          <p class="solver-note">A small version of the solver behind UCTP. Press Solve and watch it clear every clash.</p>
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section id="experience" class="section">
+        <p class="kicker">01 · Experience</p>
+        <h2>Where I've worked</h2>
+        <div class="jobs">
+          <article class="job">
+            <div class="job-date">Sep 2026 – Present</div>
+            <div class="job-body">
+              <h3>Software Engineer <span class="muted-strong">· Technosoft Inc.</span></h3>
+              <p class="job-meta">Part-time · Beirut</p>
+              <p>Automating repetitive engineering design and modeling work with the Adaptive Modeling Language (AML). I apply object-oriented design and computational geometry to engineering problems, working directly with engineers to turn their workflows into software.</p>
+              <div class="tags"><span>AML</span><span>OOP</span><span>Computational geometry</span></div>
+            </div>
+          </article>
+          <article class="job">
+            <div class="job-date">Jun – Sep 2026</div>
+            <div class="job-body">
+              <h3>Software Engineering Intern <span class="muted-strong">· Technosoft Inc.</span></h3>
+              <p class="job-meta">Beirut</p>
+              <p>Built parametric, geometry-driven models for engineering workflows in AML. Converted to a part-time engineering role at the end of the internship.</p>
+            </div>
+          </article>
+          <article class="job">
+            <div class="job-date">Aug – Sep 2025</div>
+            <div class="job-body">
+              <h3>Software Developer Intern <span class="muted-strong">· Fusion Compliance Technologies</span></h3>
+              <p class="job-meta">Backend · .NET</p>
+              <p>Built layered C# applications following Clean Architecture with EF Core, LINQ and SQL Server, and maintained RESTful ASP.NET Web APIs with strict validation for reliable, consistent data.</p>
+              <div class="tags"><span>C#</span><span>ASP.NET</span><span>EF Core</span><span>SQL Server</span></div>
+            </div>
+          </article>
+          <article class="job">
+            <div class="job-date">Jun – Sep 2025</div>
+            <div class="job-body">
+              <h3>Full-Stack &amp; Optimization Intern <span class="muted-strong">· The UCTP Project</span></h3>
+              <p class="job-meta">University course timetabling</p>
+              <p>Designed a 14+ table PostgreSQL schema for faculty workload and scheduling, wrote a MiniZinc engine that generates conflict-free timetables, and shipped the full-stack platform around it in Node.js and Express.</p>
+              <div class="tags"><span>MiniZinc</span><span>PostgreSQL</span><span>Node.js</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section id="projects" class="section">
+        <p class="kicker">02 · Projects</p>
+        <h2>Things I've built</h2>
+
+        <article class="card card-feature">
+          <div class="feature-text">
+            <div class="badge-row">
+              <span class="badge">Featured · Senior project</span>
+              <span class="mono muted small">In progress</span>
+            </div>
+            <h3 class="feature-title">Yalla</h3>
+            <p class="feature-lede">A mobile app that maps nearby places and helps friend groups agree on when and where to meet.</p>
+            <ul class="bullets">
+              <li>Built the Friends system end to end: requests, people search, groups and "who's free" views, on FastAPI with Postgres Row Level Security.</li>
+              <li>Map search as you type, place details, user-submitted places and a time-voting screen for plans.</li>
+              <li>Protected branches with CI running analysis, unit tests and database security-policy tests on every PR.</li>
+              <li>Next: a fine-tuned Qwen3-0.6B intent parser, a LightGBM activity ranker and a calibrated attendance model.</li>
+            </ul>
+            <div class="tags"><span>Flutter</span><span>Bloc</span><span>FastAPI</span><span>Supabase</span><span>PostGIS</span><span>GitHub Actions</span></div>
+          </div>
+          <div class="phones">
+            <figure>
+              <img src="assets/yalla-map.png" alt="Yalla map screen showing nearby food, outdoor and sport places clustered on a map" width="540" height="1102" loading="lazy">
+              <figcaption>Map · find a place</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yalla-freetime.png" alt="Yalla free time screen where users tap the times of the week they are usually free" width="540" height="1102" loading="lazy">
+              <figcaption>Free time · who's free</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yalla-plans.png" alt="Yalla plans screen listing upcoming plans with time voting status" width="540" height="1102" loading="lazy">
+              <figcaption>Plans · vote on a time</figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="card card-feature card-split">
+          <div class="split-text">
+            <p class="mono muted small">Optimization · 2025</p>
+            <h3 class="feature-title">UCTP Scheduler</h3>
+            <p class="feature-lede">Course timetabling for a whole university. The solver turns hard constraints into a week with zero clashes.</p>
+            <ul class="bullets">
+              <li>MiniZinc model covering faculty workloads, room availability and course assignments.</li>
+              <li>14+ table PostgreSQL schema for faculty workload and scheduling data.</li>
+              <li>Full-stack platform in Node.js, Express and EJS, with course and room views per department.</li>
+            </ul>
+            <div class="tags"><span>MiniZinc</span><span>Node.js</span><span>Express</span><span>PostgreSQL</span></div>
+          </div>
+          <figure class="split-media">
+            <img src="assets/uctp-timetable.png" alt="Generated weekly course schedule, color-coded by department, with no clashes" width="975" height="737" loading="lazy">
+            <figcaption>A conflict-free week generated by the solver.</figcaption>
+          </figure>
+        </article>
+
+        <div class="card-row">
+          <article class="card">
+            <p class="mono muted small">Backend · 2026</p>
+            <h3>DeliveryApp</h3>
+            <p class="grow">Food delivery for customers, restaurant managers and couriers, on vanilla Node.js with no framework: custom routing, repositories, connection pooling and session auth.</p>
+            <div class="tags"><span>Node.js</span><span>MySQL</span></div>
+            <a class="link-accent" href="https://github.com/hadikhawand/DeliveryApp" target="_blank" rel="noopener">View on GitHub
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+            </a>
+          </article>
+          <article class="card">
+            <p class="mono muted small">Full-stack · 2025</p>
+            <h3>Book Notes</h3>
+            <p class="grow">A web app for tracking books and reviews: add titles, write notes and sort your library by rating or title.</p>
+            <div class="tags"><span>Express</span><span>EJS</span><span>PostgreSQL</span></div>
+            <a class="link-accent" href="https://github.com/hadikhawand/Book-Notes" target="_blank" rel="noopener">View on GitHub
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section id="skills" class="section">
+        <p class="kicker">03 · Skills &amp; education</p>
+        <h2>What I work with</h2>
+        <div class="skills">
+          <div><h3>Languages</h3><p>C++, C#, Python, JavaScript, Dart, SQL</p></div>
+          <div><h3>Backend &amp; web</h3><p>Node.js, Express, FastAPI, ASP.NET, REST APIs, React, EJS</p></div>
+          <div><h3>Databases</h3><p>PostgreSQL / PostGIS, SQL Server, MySQL, Supabase (RLS)</p></div>
+          <div><h3>Frameworks</h3><p>.NET, EF Core, LINQ, Flutter, Bloc</p></div>
+          <div><h3>Optimization &amp; modeling</h3><p>MiniZinc, AML, data modeling, computational geometry</p></div>
+          <div><h3>Tools</h3><p>Git, GitHub Actions, Jira, Visual Studio, VS Code</p></div>
+        </div>
+        <div class="edu">
+          <div>
+            <p class="mono muted small">Education · 2023 – Fall 2026</p>
+            <h3>B.S. Computer Science</h3>
+            <p class="muted-strong">Notre Dame University – Louaize</p>
+          </div>
+          <div class="edu-gpa">3.99 <span>GPA</span></div>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section id="contact" class="section contact">
+        <p class="kicker">04 · Contact</p>
+        <h2 class="contact-title">Let's build something together.</h2>
+        <p class="contact-lede">Have an interesting problem, a project idea, or just want to talk databases and optimization? My inbox is open.</p>
+        <a class="btn btn-primary btn-lg" href="mailto:hadi_khawand@hotmail.com">hadi_khawand@hotmail.com</a>
+        <div class="contact-links">
+          <a href="https://github.com/hadikhawand" target="_blank" rel="noopener">GitHub ↗</a>
+          <a href="https://linkedin.com/in/hadi-khawand" target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a href="Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé (PDF) ↗</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <span class="mono">hadikhawand.dev</span>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

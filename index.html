@@ -43,9 +43,11 @@
       <a class="logo" href="#top">hadi<span class="accent">.</span>dev</a>
       <div class="nav-links">
         <a href="#experience">Experience</a>
+        <a href="#engineering">Engineering</a>
         <a href="#projects">Projects</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
         <a class="nav-cv" href="Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
       </div>
     </nav>
@@ -154,9 +156,93 @@
         </div>
       </section>
 
+      <!-- Engineering: parametric tank -->
+      <section id="engineering" class="section">
+        <p class="kicker">02 · Engineering</p>
+        <h2>Parametric tank design</h2>
+        <p class="section-lede">At Technosoft I write AML that turns an engineer's inputs into a complete 3D tank model. This is a small version you can play with: change the inputs and the geometry and plate thicknesses regenerate.</p>
+
+        <div class="tank-lab" id="tank-lab">
+          <div class="tank-view" id="tank-view">
+            <div class="tank-loading" id="tank-loading">Loading 3D model…</div>
+            <div class="tank-toolbar" role="group" aria-label="View modes">
+              <button type="button" class="chip-btn" data-mode="cutaway" aria-pressed="false">Cutaway</button>
+              <button type="button" class="chip-btn" data-mode="exploded" aria-pressed="false">Exploded</button>
+              <button type="button" class="chip-btn" data-mode="thick" aria-pressed="false">Thickness map</button>
+            </div>
+            <div class="tank-tscale" id="tank-tscale" hidden>
+              <span>5 mm</span><i></i><span>28 mm</span>
+            </div>
+            <div class="tank-hud">
+              <span class="mono small muted tank-hint">Drag to rotate · hover a course</span>
+              <div class="tank-hud-btns">
+                <button type="button" class="icon-btn" id="tank-zoom-out" aria-label="Zoom out">−</button>
+                <button type="button" class="icon-btn" id="tank-zoom-in" aria-label="Zoom in">+</button>
+                <button type="button" class="icon-btn" id="tank-reset" aria-label="Reset view">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="tank-tip" id="tank-tip" aria-hidden="true"></div>
+          </div>
+
+          <div class="tank-panel">
+            <div>
+              <div class="panel-label">Presets</div>
+              <div class="tank-presets">
+                <button type="button" class="chip-btn" data-preset="water">Water storage</button>
+                <button type="button" class="chip-btn" data-preset="fuel" aria-pressed="true">Fuel depot</button>
+                <button type="button" class="chip-btn" data-preset="crude">Crude oil</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tank-d">Diameter <output id="tank-d-out" for="tank-d"></output></label>
+              <input type="range" id="tank-d" min="6" max="80" step="0.5">
+            </div>
+            <div class="field">
+              <label for="tank-h">Shell height <output id="tank-h-out" for="tank-h"></output></label>
+              <input type="range" id="tank-h" min="4.8" max="24" step="0.1">
+            </div>
+            <div class="field">
+              <label for="tank-n">Shell courses <output id="tank-n-out" for="tank-n"></output></label>
+              <input type="range" id="tank-n" min="3" max="10" step="1">
+            </div>
+            <div class="field">
+              <label for="tank-fill">Liquid level <output id="tank-fill-out" for="tank-fill"></output></label>
+              <input type="range" id="tank-fill" min="0" max="100" step="1">
+            </div>
+            <div>
+              <div class="panel-label">Roof</div>
+              <div class="seg" role="group" aria-label="Roof type">
+                <button type="button" data-roof="cone">Cone</button>
+                <button type="button" data-roof="dome">Dome</button>
+                <button type="button" data-roof="floating">Floating</button>
+              </div>
+            </div>
+
+            <div class="readouts">
+              <div><div class="ro-label">Nominal capacity</div><div class="ro-val" id="r-cap"></div><div class="ro-sub" id="r-cap-bbl"></div></div>
+              <div><div class="ro-label">Liquid stored</div><div class="ro-val" id="r-vol"></div><div class="ro-sub" id="r-ch"></div></div>
+              <div><div class="ro-label">Shell steel</div><div class="ro-val" id="r-steel"></div><div class="ro-sub">plates only</div></div>
+              <div><div class="ro-label">Bottom course</div><div class="ro-val" id="r-maxt"></div><div class="ro-sub">thickest plate</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tank-lower">
+          <div class="tank-courses">
+            <div class="panel-label">Shell plate thickness</div>
+            <p class="tank-courses-sub">One-foot method, course by course. Lower courses hold more pressure, so they need thicker plate.</p>
+            <div id="tank-courses"></div>
+          </div>
+        </div>
+        <p class="tank-note">Illustrative only: a simplified API 650-style calculation (G = 1.0, S<sub>d</sub> = 160 MPa, CA = 1.5 mm).</p>
+      </section>
+
       <!-- Projects -->
       <section id="projects" class="section">
-        <p class="kicker">02 · Projects</p>
+        <p class="kicker">03 · Projects</p>
         <h2>Things I've built</h2>
 
         <article class="card card-feature">
@@ -233,7 +319,7 @@
 
       <!-- Skills -->
       <section id="skills" class="section">
-        <p class="kicker">03 · Skills &amp; education</p>
+        <p class="kicker">04 · Skills &amp; education</p>
         <h2>What I work with</h2>
         <div class="skills">
           <div><h3>Languages</h3><p>C++, C#, Python, JavaScript, Dart, SQL</p></div>
@@ -255,7 +341,7 @@
 
       <!-- Contact -->
       <section id="contact" class="section contact">
-        <p class="kicker">04 · Contact</p>
+        <p class="kicker">05 · Contact</p>
         <h2 class="contact-title">Let's build something together.</h2>
         <p class="contact-lede">Have an interesting problem, a project idea, or just want to talk databases and optimization? My inbox is open.</p>
         <a class="btn btn-primary btn-lg" href="mailto:hadi_khawand@hotmail.com">hadi_khawand@hotmail.com</a>
@@ -271,10 +357,20 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <span>© <span id="year">2026</span> Hadi Khawand</span>
-      <span class="mono">hadikhawand.dev</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
     </div>
   </footer>
 
   <script src="script.js" defer></script>
+  <script src="terminal.js" defer></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="tank.js"></script>
 </body>
 </html>

@@ -301,6 +301,47 @@ html.term-open { overflow: hidden; }
 .t-swatch { display: inline-flex; gap: 0; margin-top: 6px; }
 .t-swatch i { width: 22px; height: 12px; }
 
+/* Yalla time finder (inside the Yalla card) */
+.yalla-try { flex: 1 1 100%; min-width: 0; border: 1px solid var(--line-2); border-radius: 14px; background: var(--bg); }
+.yalla-try summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 16px 20px; padding-right: 52px; position: relative; }
+.yalla-try summary::-webkit-details-marker { display: none; }
+.yalla-try summary::after { content: "+"; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font: 500 22px var(--font-sans); color: var(--accent); transition: transform .2s; }
+.yalla-try[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+.yalla-try summary:hover .yalla-try-title { color: var(--accent); }
+.yalla-try-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; transition: color .15s; }
+.yalla-try .yalla { padding: 4px 20px 20px; }
+.yalla-people { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.person-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); font: 500 13px var(--font-sans); cursor: pointer; }
+.person-chip i { width: 10px; height: 10px; border-radius: 50%; }
+.person-chip.you { cursor: default; border-color: var(--accent); }
+.person-chip[aria-pressed="false"] { color: var(--muted); opacity: .55; text-decoration: line-through; }
+.yalla-grid { display: grid; grid-template-columns: 92px repeat(7, minmax(0, 1fr)); gap: 6px; }
+.yg-day { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 2px; }
+.yg-period { display: flex; flex-direction: column; justify-content: center; font-size: 13px; line-height: 1.3; }
+.yg-period .mono { font-size: 11px; color: var(--muted); }
+.yg-cell { position: relative; min-height: 60px; min-width: 0; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; padding: 6px; display: flex; align-items: flex-end; transition: background .2s, border-color .2s, transform .1s; }
+.yg-cell:hover { border-color: var(--muted); }
+.yg-cell:active { transform: scale(.96); }
+.yg-cell.l1 { background: rgba(94, 234, 212, .07); }
+.yg-cell.l2 { background: rgba(94, 234, 212, .15); }
+.yg-cell.l3 { background: rgba(94, 234, 212, .26); }
+.yg-cell.l4 { background: rgba(94, 234, 212, .40); }
+.yg-cell.me { border-color: rgba(94, 234, 212, .7); }
+.yg-cell.best { border: 2px solid var(--accent); box-shadow: 0 0 0 4px rgba(94, 234, 212, .15); }
+.yg-cell.best::after { content: "★"; position: absolute; top: 4px; right: 7px; font-size: 13px; color: var(--accent); }
+.yg-dots { display: flex; flex-wrap: wrap; gap: 3px; }
+.yg-dots i { width: 8px; height: 8px; border-radius: 50%; }
+.yalla-foot { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 20px; }
+.yalla-best { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 15px; color: var(--text-2); }
+.yalla-best strong { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--accent); }
+.yalla-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.yalla-legend { margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+.yalla-legend .lg { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); }
+.yalla-legend .l1 { background: rgba(94, 234, 212, .07); }
+.yalla-legend .l2 { background: rgba(94, 234, 212, .15); }
+.yalla-legend .l3 { background: rgba(94, 234, 212, .26); }
+.yalla-legend .l4 { background: rgba(94, 234, 212, .40); }
+
 /* Small screens */
 @media (max-width: 640px) {
   .hero { padding: 56px 0 48px; gap: 40px; }
@@ -333,6 +374,18 @@ html.term-open { overflow: hidden; }
   .term-line input { font-size: 16px; }
   .t-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 4px; }
   .footer-term kbd { display: none; }
+  .yalla-grid { grid-template-columns: 50px repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .card-feature .yalla-try { margin: 0 -12px; }
+  .yalla-try summary { padding: 14px 44px 14px 14px; }
+  .yalla-try summary::after { right: 14px; }
+  .yalla-try .yalla { padding: 2px 8px 14px; }
+  .yg-period { font-size: 11px; }
+  .yg-period .mono { font-size: 9px; }
+  .yg-day { font-size: 10px; }
+  .yg-cell { min-height: 48px; border-radius: 7px; padding: 3px; }
+  .yg-cell.best::after { font-size: 10px; top: 1px; right: 3px; }
+  .yg-dots { gap: 2px; }
+  .yg-dots i { width: 6px; height: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

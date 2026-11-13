@@ -275,6 +275,28 @@
               <figcaption>Plans · vote on a time</figcaption>
             </figure>
           </div>
+          <details class="yalla-try" id="yalla">
+            <summary>
+              <span class="yalla-try-title">Try it: find a time for the group</span>
+              <span class="mono small muted">Tap when you're free and the best slot moves</span>
+            </summary>
+            <div class="yalla">
+              <div class="yalla-people" role="group" aria-label="Who's in the group">
+                <span class="person-chip you"><i style="background:#5EEAD4"></i>You</span>
+              </div>
+              <div class="yalla-grid" id="yalla-grid" role="grid" aria-label="Weekly availability. Tap a cell to mark yourself free."></div>
+              <div class="yalla-foot">
+                <div class="yalla-best" id="yalla-best" aria-live="polite"></div>
+                <div class="yalla-actions">
+                  <button type="button" class="btn-sm btn-ghost" id="yalla-clear">Clear mine</button>
+                  <button type="button" class="btn-sm btn-ghost" id="yalla-shuffle">New friends' week</button>
+                </div>
+              </div>
+              <div class="yalla-legend mono small muted">
+                <span>Free:</span><span class="lg l0"></span>0<span class="lg l1"></span><span class="lg l2"></span><span class="lg l3"></span><span class="lg l4"></span>everyone
+              </div>
+            </div>
+          </details>
         </article>
 
         <article class="card card-feature card-split">
@@ -362,6 +384,7 @@
   </footer>
 
   <script src="script.js" defer></script>
+  <script src="yalla.js" defer></script>
   <script src="terminal.js" defer></script>
   <script type="importmap">
   {

@@ -47,7 +47,11 @@
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
-    if (!el) return false;
+    if (!el) {
+      // On the Lab page: go back to the portfolio section instead
+      location.href = id === 'top' ? './' : `./#${id}`;
+      return true;
+    }
     close();
     el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     return true;
@@ -161,6 +165,15 @@ I build backend systems, design databases and write optimization engines that tu
         }
         print(Object.keys(opts).length ? 'Regenerating model…' : `Opening the tank lab. Try ${cmd('tank --d 60 --h 19 --roof floating')}`);
         setTimeout(() => scrollTo('engineering'), 400);
+      },
+    },
+    yalla: {
+      desc: 'try the Yalla group time finder',
+      run: () => {
+        const d = document.getElementById('yalla');
+        if (d) d.open = true;
+        print('Opening the time finder…');
+        setTimeout(() => scrollTo('yalla'), 300);
       },
     },
     education: {

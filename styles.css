@@ -130,12 +130,18 @@ button:disabled { cursor: default; opacity: .85; }
 
 /* Sections */
 .section { padding-top: 128px; }
-#experience { padding-top: 96px; }
+#about { padding-top: 96px; }
 .kicker { margin: 0 0 12px; font-family: var(--font-mono); font-size: 14px; color: var(--accent); }
 h2 { margin-bottom: 56px; font-family: var(--font-display); font-size: 44px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
 
 .tags { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
 .tags span { font-family: var(--font-mono); font-size: 12px; padding: 4px 10px; border-radius: 6px; background: var(--chip); color: var(--text-2); }
+
+/* About */
+.about h2 { margin-bottom: 28px; }
+.about p { margin: 0 0 18px; max-width: 760px; font-size: 18px; line-height: 1.7; color: var(--text-2); }
+.about p:last-child { margin-bottom: 0; }
+.about a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Experience */
 .job { display: flex; flex-wrap: wrap; gap: 8px 48px; padding: 32px 0; border-top: 1px solid var(--line); }
@@ -387,7 +393,8 @@ html.term-open { overflow: hidden; }
 @media (max-width: 640px) {
   .hero { padding: 56px 0 48px; gap: 40px; }
   .section { padding-top: 88px; }
-  #experience { padding-top: 72px; }
+  #about { padding-top: 72px; }
+  .about p { font-size: 16px; }
   h2 { font-size: 34px; margin-bottom: 36px; }
   .card, .card-feature { padding: 24px; }
   .card .feature-title { font-size: 30px; }

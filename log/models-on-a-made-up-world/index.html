@@ -13,6 +13,7 @@
   <meta property="og:title" content="Two models, one made-up world">
   <meta property="og:description" content="A LightGBM ranker and a calibrated attendance model trained on 400 synthetic people, and what the scores can and cannot prove.">
   <meta property="og:image" content="https://hadikhawand.dev/assets/attendance-reliability.png">
+  <meta name="twitter:card" content="summary_large_image">
   <meta property="article:published_time" content="2026-11-21">
   <meta property="article:author" content="Hadi Khawand">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +58,7 @@
         <h1>Two models, one made-up world: a ranker and an attendance model with no real users yet</h1>
         <p class="lede">Yalla is graded partly on two models I built. Neither had any real users to learn from. So I built a world of 400 made-up people first, and wrote down exactly what its scores can and cannot prove.</p>
         <div class="log-meta">
-          <span class="post-author"><img src="/assets/headshot.jpg" alt="" width="32" height="32">Hadi Khawand</span>
+          <span class="post-author"><img src="/assets/headshot-160.webp" alt="" width="32" height="32">Hadi Khawand</span>
           <time datetime="2026-11-21">21 Nov 2026</time>
           <span>10 min read</span>
         </div>
@@ -109,7 +110,7 @@
         <p>Among people who said yes, the model tells the ones who will come from the ones who will flake with an ROC-AUC of 0.701. The count can't do it at all: 0.502.</p>
 
         <figure>
-          <img src="/assets/attendance-reliability.png" alt="Reliability diagram: the calibrated model's predicted chance of coming sits on the diagonal against how often people actually came, from about 3% to 93%. The most-votes heuristic gives only two values." width="900" height="1050" loading="lazy" style="display:block;width:100%;max-width:520px;margin:0 auto;border-radius:12px;">
+          <img src="/assets/attendance-reliability.webp" alt="Reliability diagram: the calibrated model's predicted chance of coming sits on the diagonal against how often people actually came, from about 3% to 93%. The most-votes heuristic gives only two values." width="900" height="1050" loading="lazy" style="display:block;width:100%;max-width:520px;margin:0 auto;border-radius:12px;">
           <figcaption>Predicted chance of coming against how often people came. Of the people the model gives 30%, about 30% came.</figcaption>
         </figure>
 

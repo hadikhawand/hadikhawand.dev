@@ -1,6 +1,6 @@
 // Terminal easter egg: press ` or ~ (or the >_ button in the nav) to open.
 (function () {
-  const SECTIONS = ['experience', 'engineering', 'projects', 'skills', 'contact'];
+  const SECTIONS = ['about', 'experience', 'engineering', 'projects', 'skills', 'contact'];
   const EMAIL = 'hadi_khawand@hotmail.com';
   const LINKS = {
     github: 'https://github.com/hadikhawand',

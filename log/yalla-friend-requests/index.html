@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>When two people tap at once: building friend requests on Postgres · Hadi Khawand</title>
+  <meta name="description" content="How Hadi Khawand built the friends system in Yalla on Postgres Row Level Security, row locks and the primary key, and tested the race conditions without relying on luck.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/log/yalla-friend-requests/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hadikhawand.dev/log/yalla-friend-requests/">
+  <meta property="og:title" content="When two people tap at once: building friend requests on Postgres">
+  <meta property="og:description" content="Row Level Security, a row lock, the primary key, and tests that force the race instead of hoping for it.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/yalla-freetime.png">
+  <meta property="article:published_time" content="2026-11-21">
+  <meta property="article:author" content="Hadi Khawand">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "When two people tap at once: building friend requests on Postgres",
+    "description": "Row Level Security, a row lock, the primary key, and tests that force the race instead of hoping for it.",
+    "datePublished": "2026-11-21",
+    "dateModified": "2026-11-21",
+    "url": "https://hadikhawand.dev/log/yalla-friend-requests/",
+    "mainEntityOfPage": "https://hadikhawand.dev/log/yalla-friend-requests/",
+    "image": "https://hadikhawand.dev/assets/yalla-freetime.png",
+    "keywords": ["PostgreSQL", "Row Level Security", "Supabase", "FastAPI", "race conditions", "testing"],
+    "author": { "@type": "Person", "name": "Hadi Khawand", "url": "https://hadikhawand.dev/", "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"] }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="/">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="/#experience">Experience</a>
+        <a href="/#projects">Projects</a>
+        <a href="/log/">Log</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
+        <a class="nav-cv" href="/Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="log-wrap">
+    <article>
+      <header class="post-head">
+        <a class="post-back" href="/log/">← All posts</a>
+        <h1>When two people tap at once: building friend requests on Postgres</h1>
+        <p class="lede">Sending, accepting and removing a friend sounds like three small endpoints. The hard part is what happens when two people do it at the same moment.</p>
+        <div class="log-meta">
+          <span class="post-author"><img src="/assets/headshot.jpg" alt="" width="32" height="32">Hadi Khawand</span>
+          <time datetime="2026-11-21">21 Nov 2026</time>
+          <span>9 min read</span>
+        </div>
+      </header>
+
+      <div class="post-body">
+        <p>Yalla is our senior project at NDU: a map of things to do nearby, and an app that helps a group of friends agree on when and where to meet. We are a team of two and split the work by feature. One of my features is the friends system: the table, its security rules, the endpoints, people search, friend groups and the four Flutter screens. This post is about the part with the most interesting bugs, friend requests.</p>
+        <p>Everything else in the app leans on it. "Which of my friends are free on Thursday?" and "only my friends can see this event" both start with the question of who is friends with whom. So it had to be right, and it had to stay right when two phones hit the server at the same instant.</p>
+
+        <h2>One row per pair</h2>
+        <p>A friendship between Alice and Bob could be stored as Alice to Bob, Bob to Alice, or both. Both is how you end up with a "pending" row in one direction and an "accepted" one in the other. So the table allows exactly one row per pair, and the database enforces it:</p>
+<pre><code>create table friendship (
+  user_a       uuid not null references user_profile (id) on delete cascade,
+  user_b       uuid not null references user_profile (id) on delete cascade,
+  status       text not null default 'pending'
+               check (status in ('pending', 'accepted')),
+  requested_by uuid not null,
+  primary key (user_a, user_b),
+  constraint smaller_id_first check (user_a &lt; user_b),
+  constraint requested_by_one_of_the_two check (requested_by in (user_a, user_b))
+);</code></pre>
+        <p>The <code>user_a &lt; user_b</code> check does two jobs. The pair can only be written one way, so the primary key really is one row per pair. And you can't befriend yourself, because an id is never smaller than itself. Whoever writes a row sorts the two ids with <code>least()</code> and <code>greatest()</code> first.</p>
+        <p>There are only two states. Declining, cancelling and unfriending all delete the row, so there is no "declined" value to keep consistent.</p>
+
+        <h2>Who can read and write</h2>
+        <p>The Flutter app reads some tables straight from Supabase, so the database itself has to decide which rows each person sees. That is what Row Level Security does. The rule for this table is one line:</p>
+<pre><code>create policy "you read the friendships you are part of" on friendship
+  for select to authenticated
+  using ((select auth.uid()) in (user_a, user_b));
+
+revoke insert, update, delete on friendship from authenticated;</code></pre>
+        <p>You see a row only if you are one of its two people. Your friend Dave can't see your pending request to Bob, or your other friends.</p>
+        <p>The second line does more than it looks like. There is no insert, update or delete policy, so RLS would already block writes from the app. But RLS blocks an update or delete without a word: the statement succeeds and changes 0 rows. Taking the rights away as well turns that into a loud <code>permission denied</code> error. Breaking it on purpose later showed just how quiet the first version is.</p>
+        <p>All writes go through our Python backend instead. Our rule for the whole project is simple: the app may talk to Supabase directly to read, and to save its own private rows. Anything that touches another person goes through FastAPI, which checks the rules first.</p>
+
+        <h2>Sending: let the primary key decide</h2>
+        <p>The obvious way to send a request is to look for an existing row, and insert one if there isn't any. If Alice and Bob send each other a request at the same moment, both looks find nothing and both inserts run.</p>
+        <p>So the endpoint doesn't look first. It inserts and lets the primary key settle it:</p>
+<pre><code>insert into friendship (user_a, user_b, requested_by)
+values (least(%(me)s, %(other)s), greatest(%(me)s, %(other)s), %(me)s)
+on conflict (user_a, user_b) do nothing
+returning status</code></pre>
+        <p>If a row came back, this call created the request, and in the same transaction it creates a notification for the other person. If nothing came back, someone got there first. Only then does it read what is there, to choose the right message: you already sent one, they already sent you one, or you are already friends. Two simultaneous sends give one 201 and one 409, one row and one notification.</p>
+        <p>"Me" is always the id from the sign-in token, never from the request body. The row is always the pair of me and the other person. A third person has no way to even name a row they aren't in, so there is no "is the caller part of this?" check to forget.</p>
+
+        <h2>Accepting: lock the row first</h2>
+        <p>Accepting has a real race. Bob taps Accept at the same moment Alice cancels her request. Without care, this happens:</p>
+        <ol>
+          <li>Bob's accept reads the row. It is still pending, because Alice's cancel hasn't been saved yet.</li>
+          <li>Alice's cancel is saved, and the row is gone.</li>
+          <li>Bob's update changes 0 rows, but the code already decided it was fine. It answers 200 and tells Alice her request was accepted.</li>
+        </ol>
+        <p>Nothing crashes and no error is logged. Alice gets a notification about a friendship that doesn't exist. The fix is to lock the row while checking it:</p>
+<pre><code>with db.as_admin() as conn:
+    request = conn.execute(LOCK_THE_ROW, pair).fetchone()   # select ... for update
+    if request is None:
+        raise HTTPException(404, ...)
+    if request["status"] == "accepted":
+        raise HTTPException(409, "you are already friends")
+    if request["requested_by"] == pair["me"]:
+        raise HTTPException(403, ...)                         # only the receiver accepts
+    if conn.execute(ACCEPT, pair).rowcount != 1:
+        raise HTTPException(409, "that just changed, try again")
+    notify(conn, pair["other"], "friend_accepted", ...)</code></pre>
+        <p><code>select ... for update</code> makes anyone else who wants to change or delete that row wait until this transaction ends. So what was checked is still true when it gets written. The accept and its notification are one transaction, so either both are saved or neither is.</p>
+        <p>The row-count check can't fire while the lock is there. It is a second net in case the lock is ever lost. A check that can never fire still has to be seen firing once, so I removed the lock to watch it answer 409.</p>
+
+        <h2>Testing a race without relying on luck</h2>
+        <p>The obvious race test starts two threads behind a barrier, Alice to Bob and Bob to Alice, and lets them go together ten times. We have that test and it passes. It would also pass if the two calls never overlapped at all, so on its own it proves nothing about the race.</p>
+        <p>The tests that do prove something hold one side half-finished. The test runs Alice's cancel itself and doesn't commit. Bob's accept starts in a thread. Then the test asks Postgres, in a loop, whether some session is stuck waiting for a lock on <code>friendship</code>:</p>
+<pre><code>stuck = conn.execute(
+    "select count(*) as n from pg_stat_activity"
+    " where wait_event_type = 'Lock' and query like '%friendship%'"
+    " and pid &lt;&gt; pg_backend_pid()"
+).fetchone()["n"]</code></pre>
+        <p>Only when the database says Bob's call is waiting does the test commit Alice's cancel. Bob then has to get a 404, and Alice must not get an "accepted" notification. No sleeps, no hoping the timing works out. To make sure nothing can hang, every test connection is opened with <code>lock_timeout=5s</code>, so Postgres itself cancels anything that waits too long.</p>
+        <p>To check that this test actually guards the lock, I replaced <code>for update</code> with a plain <code>select</code> and wrote down the prediction first: that test fails with a 200 where a 404 is expected, and the other tests all pass. That is exactly what happened. Out of the whole file, it was the only test that noticed the lock was gone.</p>
+
+        <h2>Breaking the code on purpose</h2>
+        <p>I did the same with five other checks in the endpoints: remove one, write down which tests should fail, run, compare, restore. All five failed exactly as predicted. One of them was still the most useful result of the whole feature.</p>
+        <p>I dropped the pair filter from the delete, so it became <code>delete from friendship</code> with no <code>where</code>. That deletes every friendship in the table. 30 of the 31 tests still passed, and only one noticed, through a status code. Every other delete test had a single row in the table, so "delete this pair" and "delete everything" looked identical.</p>
+        <p>So I added a test where Alice is friends with both Bob and Carol, unfriends Bob, and Carol's row must still be there. With the filter removed again, it fails on exactly that line.</p>
+        <p>I did the same to the security rule. Opening it to everyone made the expected checks fail: Bob and Dave each saw the other's rows. Giving the write rights back is where the surprise was. The updates and deletes raised no error at all, which is the quiet 0-rows behaviour from earlier. Only a check on the exact error message caught the inserts.</p>
+        <p>Breaking things on purpose doesn't catch everything. On the notifications table, which I also built, opening up the update rule turned no test red, because every update in my tests had a <code>where</code>. My teammate found it in review: an update with no <code>where</code> could mark another person's notification as read. One more check closed it. A second pair of eyes still finds what your own predictions don't.</p>
+        <p>The friendship table has 23 database checks for its rules, and the endpoints had 29 tests when they merged. On every pull request, GitHub Actions starts a local Supabase database and runs both.</p>
+
+        <h2>What the lock doesn't solve</h2>
+        <p>The lock decides who goes first. It doesn't decide what should happen next. If Bob's accept wins and Alice's cancel runs right after it, the cancel deletes the brand new friendship, and Alice keeps an "accepted" notification for a friendship that is gone. The table's rules still hold: there is never more than one row per pair, and nobody sees a friendship they aren't in. It is written down as a known limit in the feature's notes.</p>
+
+        <p class="post-note">Yalla is still in progress. You can see a few of its screens, and try a small version of the group time finder, on <a href="/#projects">my homepage</a>.</p>
+      </div>
+
+      <footer class="post-end">
+        <a class="link-accent" href="/log/">← All posts</a>
+        <a class="link-accent" href="/log/one-round-trip/">Next: One round trip instead of five →</a>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
+    </div>
+  </footer>
+  <script src="/terminal.js" defer></script>
+</body>
+</html>

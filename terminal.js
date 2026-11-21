@@ -5,7 +5,7 @@
   const LINKS = {
     github: 'https://github.com/hadikhawand',
     linkedin: 'https://linkedin.com/in/hadi-khawand',
-    cv: 'Hadi_Khawand_CV.pdf',
+    cv: '/Hadi_Khawand_CV.pdf',
   };
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const cmd = (c, label) => `<button type="button" class="t-cmd" data-run="${esc(c)}">${esc(label || c)}</button>`;
@@ -48,8 +48,8 @@
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (!el) {
-      // On the Lab page: go back to the portfolio section instead
-      location.href = id === 'top' ? './' : `./#${id}`;
+      // On another page (like the log): go to that section of the homepage
+      location.href = id === 'top' ? '/' : `/#${id}`;
       return true;
     }
     close();
@@ -166,6 +166,15 @@ I build backend systems, design databases and write optimization engines that tu
         print(Object.keys(opts).length ? 'Regenerating model…' : `Opening the tank lab. Try ${cmd('tank --d 60 --h 19 --roof floating')}`);
         setTimeout(() => scrollTo('engineering'), 400);
       },
+    },
+    log: {
+      desc: 'read my posts',
+      run: () => print(`<div class="t-row"><span class="t-acc">21 Nov 2026</span><span>${a('/log/models-on-a-made-up-world/', 'Two models, one made-up world')}</span></div>
+<div class="t-row"><span class="t-acc">21 Nov 2026</span><span>${a('/log/one-round-trip/', 'One round trip instead of five')}</span></div>
+<div class="t-row"><span class="t-acc">21 Nov 2026</span><span>${a('/log/yalla-friend-requests/', 'When two people tap at once: friend requests on Postgres')}</span></div>
+<div class="t-row"><span class="t-acc">21 Nov 2026</span><span>${a('/log/timetable-solver/', 'What a timetable solver actually does')}</span></div>
+<div class="t-row"><span class="t-acc">21 Nov 2026</span><span>${a('/log/node-without-express/', 'Building a food delivery backend without Express')}</span></div>
+<div class="t-dim">All posts: <a href="/log/">hadikhawand.dev/log</a></div>`),
     },
     yalla: {
       desc: 'try the Yalla group time finder',

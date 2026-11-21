@@ -29,8 +29,11 @@
     "url": "https://hadikhawand.dev",
     "image": "https://hadikhawand.dev/assets/headshot.jpg",
     "jobTitle": "Software Engineer",
+    "description": "Software engineer at Technosoft and Computer Science student at Notre Dame University - Louaize, building backend systems, databases and optimization engines.",
     "worksFor": { "@type": "Organization", "name": "Technosoft Inc." },
-    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Notre Dame University - Louaize" },
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Notre Dame University - Louaize", "url": "https://www.ndu.edu.lb" },
+    "address": { "@type": "PostalAddress", "addressCountry": "LB" },
+    "knowsAbout": ["Backend development", "Database design", "PostgreSQL", "Constraint programming", "MiniZinc", "Node.js", "C#", "ASP.NET", "Python", "FastAPI", "Flutter", "Computational geometry"],
     "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"]
   }
   </script>
@@ -45,6 +48,7 @@
         <a href="#experience">Experience</a>
         <a href="#engineering">Engineering</a>
         <a href="#projects">Projects</a>
+        <a href="/log/">Log</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
         <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
@@ -249,17 +253,24 @@
           <div class="feature-text">
             <div class="badge-row">
               <span class="badge">Featured · Senior project</span>
-              <span class="mono muted small">In progress</span>
+              <span class="mono muted small">Team of two · in the app, jury in December</span>
             </div>
             <h3 class="feature-title">Yalla</h3>
-            <p class="feature-lede">A mobile app that maps nearby places and helps friend groups agree on when and where to meet.</p>
+            <p class="feature-lede">A mobile app that maps things to do nearby and helps a group of friends agree on when and where to meet. Built with one teammate; these are my parts.</p>
             <ul class="bullets">
-              <li>Built the Friends system end to end: requests, people search, groups and "who's free" views, on FastAPI with Postgres Row Level Security.</li>
-              <li>Map search as you type, place details, user-submitted places and a time-voting screen for plans.</li>
-              <li>Protected branches with CI running analysis, unit tests and database security-policy tests on every PR.</li>
-              <li>Next: a fine-tuned Qwen3-0.6B intent parser, a LightGBM activity ranker and a calibrated attendance model.</li>
+              <li>The friends system: the friendship table and its RLS policies, request and accept endpoints in FastAPI with row locks, typo-tolerant people search, private friend groups, a "best time this week" finder that never reveals anyone's hours, and the four Flutter screens.</li>
+              <li>Map and search: name search, the filter endpoint and a geometry index (filter on live 252 &rarr; 107 ms), plus the Map, Place details, Near you and Suggest a place screens.</li>
+              <li>A one-round-trip database layer: live map calls went from 518&ndash;708 ms to 222&ndash;321 ms.</li>
+              <li>Picking a time: propose, vote, suggest the best times and confirm, the Pick a time screen, notifications and a day-before reminder job.</li>
+              <li>Two of the three graded ML models, trained on a synthetic world I built: a LightGBM activity ranker (NDCG@5 0.313 vs 0.194 for the best heuristic) and a calibrated attendance model (ROC-AUC 0.859 vs 0.667).</li>
+              <li>The database test pipeline: a local Supabase in CI running the RLS tests and the tests that write rows on every pull request.</li>
             </ul>
-            <div class="tags"><span>Flutter</span><span>Bloc</span><span>FastAPI</span><span>Supabase</span><span>PostGIS</span><span>GitHub Actions</span></div>
+            <div class="tags"><span>Flutter</span><span>Bloc</span><span>FastAPI</span><span>Supabase</span><span>PostGIS</span><span>LightGBM</span><span>scikit-learn</span><span>pgTAP</span><span>GitHub Actions</span></div>
+            <div class="card-links">
+              <a class="link-accent" href="/log/yalla-friend-requests/">The friends system <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+              <a class="link-accent" href="/log/one-round-trip/">One round trip instead of five <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+              <a class="link-accent" href="/log/models-on-a-made-up-world/">Two models, one made-up world <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+            </div>
           </div>
           <div class="phones">
             <figure>
@@ -310,6 +321,9 @@
               <li>Full-stack platform in Node.js, Express and EJS, with course and room views per department.</li>
             </ul>
             <div class="tags"><span>MiniZinc</span><span>Node.js</span><span>Express</span><span>PostgreSQL</span></div>
+            <a class="link-accent" href="/log/timetable-solver/">How the solver works
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+            </a>
           </div>
           <figure class="split-media">
             <img src="assets/uctp-timetable.png" alt="Generated weekly course schedule, color-coded by department, with no clashes" width="975" height="737" loading="lazy">
@@ -323,9 +337,14 @@
             <h3>DeliveryApp</h3>
             <p class="grow">Food delivery for customers, restaurant managers and couriers, on vanilla Node.js with no framework: custom routing, repositories, connection pooling and session auth.</p>
             <div class="tags"><span>Node.js</span><span>MySQL</span></div>
-            <a class="link-accent" href="https://github.com/hadikhawand/DeliveryApp" target="_blank" rel="noopener">View on GitHub
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
-            </a>
+            <div class="card-links">
+              <a class="link-accent" href="/log/node-without-express/">Read the write-up
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+              </a>
+              <a class="link-accent" href="https://github.com/hadikhawand/DeliveryApp" target="_blank" rel="noopener">View on GitHub
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+              </a>
+            </div>
           </article>
           <article class="card">
             <p class="mono muted small">Full-stack · 2025</p>

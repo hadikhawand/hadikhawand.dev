@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two models, one made-up world: a ranker and an attendance model with no real users yet · Hadi Khawand</title>
+  <meta name="description" content="How Hadi Khawand trained Yalla's LightGBM activity ranker and calibrated attendance model on a synthetic world of 400 people, and what those scores can and cannot prove.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/log/models-on-a-made-up-world/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hadikhawand.dev/log/models-on-a-made-up-world/">
+  <meta property="og:title" content="Two models, one made-up world">
+  <meta property="og:description" content="A LightGBM ranker and a calibrated attendance model trained on 400 synthetic people, and what the scores can and cannot prove.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/attendance-reliability.png">
+  <meta property="article:published_time" content="2026-11-21">
+  <meta property="article:author" content="Hadi Khawand">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Two models, one made-up world: a ranker and an attendance model with no real users yet",
+    "description": "A LightGBM ranker and a calibrated attendance model trained on 400 synthetic people, and what the scores can and cannot prove.",
+    "datePublished": "2026-11-21",
+    "dateModified": "2026-11-21",
+    "url": "https://hadikhawand.dev/log/models-on-a-made-up-world/",
+    "mainEntityOfPage": "https://hadikhawand.dev/log/models-on-a-made-up-world/",
+    "image": "https://hadikhawand.dev/assets/attendance-reliability.png",
+    "keywords": ["machine learning", "LightGBM", "learning to rank", "calibration", "synthetic data", "scikit-learn"],
+    "author": { "@type": "Person", "name": "Hadi Khawand", "url": "https://hadikhawand.dev/", "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"] }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="/">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="/#experience">Experience</a>
+        <a href="/#projects">Projects</a>
+        <a href="/log/">Log</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
+        <a class="nav-cv" href="/Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="log-wrap">
+    <article>
+      <header class="post-head">
+        <a class="post-back" href="/log/">← All posts</a>
+        <h1>Two models, one made-up world: a ranker and an attendance model with no real users yet</h1>
+        <p class="lede">Yalla is graded partly on two models I built. Neither had any real users to learn from. So I built a world of 400 made-up people first, and wrote down exactly what its scores can and cannot prove.</p>
+        <div class="log-meta">
+          <span class="post-author"><img src="/assets/headshot.jpg" alt="" width="32" height="32">Hadi Khawand</span>
+          <time datetime="2026-11-21">21 Nov 2026</time>
+          <span>10 min read</span>
+        </div>
+      </header>
+
+      <div class="post-body">
+        <p>Yalla, our senior project at NDU, is graded on three models. My teammate led the first, an intent parser that turns "padel in hamra saturday evening, 4 of us" into a structured search. I built the other two:</p>
+        <ul>
+          <li>an <strong>activity ranker</strong> that decides which of the matching places to show first;</li>
+          <li>an <strong>attendance model</strong> that estimates who will actually show up to a plan.</li>
+        </ul>
+        <p>Both are in the app now. Both had the same problem at the start: a new app has no history. Nobody has picked a place or flaked on a plan yet.</p>
+
+        <h2>Building the world first</h2>
+        <p>Before writing either model, I wrote a generator for a world of 400 people over 52 weeks, with a fixed random seed of 42. My teammate reviewed the design and shaped parts of it. Each person has things the app can see and things it can't.</p>
+        <p>Hidden: where they live, how much they like each kind of place, how far they will travel (6 km for the median person), their budget and their energy. Seen by the app: their listed interests, about 12 friends, a few named groups, and their weekly free time.</p>
+        <p>Each week, each person searches about once, using the parser's own sentence generator. The candidate places come from the app's real filter query, run on a local copy of the 32,094 places on the live map. The person then picks one place from a shortlist using a score I wrote down: distance, whether it is the kind they asked for, their hidden taste, whether friends went there before, and some luck.</p>
+        <p>The important consequence: a model that does well here has learned to recover <em>my</em> formula from what the app can see. That is a real test of the pipeline and the features. It is not proof that it helps real people.</p>
+
+        <h2>The ranker</h2>
+        <p>The filter returns up to 200 matching places, nearest first. The ranker reorders them. It is a LightGBM lambdarank model with 23 features, grouped into distance, kind, word match, estimates by kind (price, energy, indoor, open then, group fit), fame from Wikidata, the person's interests and history, and their friends.</p>
+        <p>Training used weeks 1 to 36, weeks 37 to 40 decided when to stop adding trees, and weeks 41 to 52 were the test: 4,694 searches with 166 candidates each.</p>
+        <ul>
+          <li>Random order: NDCG@5 0.037</li>
+          <li>Most popular first: 0.166</li>
+          <li>Category-match heuristic: 0.194</li>
+          <li><strong>The ranker: 0.313</strong></li>
+          <li>The ceiling, my own formula without the luck: 0.530</li>
+        </ul>
+        <p>The ranker puts the picked place first 17.1% of the time, nearly twice the heuristic's 9.0%, and reaches 59% of the ceiling.</p>
+
+        <h3>Padel under a gym</h3>
+        <p>An early version ranked a padel court 2.5 km away below a gym 400 m away for someone who typed "padel". The model was doing what the world taught it: in that first world, only 37% of picks matched a kind the person had named. So the fix went into the world, not into a special rule in the app. I made the named kind count in the choice formula and added a feature for a specific word match, like "padel", "tennis" or "bowling" in the sentence. That feature now carries 9% of the model's gain.</p>
+        <p>One honest note that came from my teammate's review: the first and second versions were scored on different worlds, so the move from 0.298 to 0.313 is not an improvement of the model. Within one world, only the baselines and the ceiling are fair comparisons.</p>
+
+        <h3>What the ablation says</h3>
+        <p>Removing one feature group at a time and training again shows where the signal comes from. History carries the most: without it, NDCG@5 drops to 0.237. That is the number to watch for the real app, because real users start with no history at all, and 0.237 is still above every simple baseline. Fame from Wikidata adds nothing here, which is expected, because my formula has no fame term.</p>
+
+        <h2>The attendance model</h2>
+        <p>The second half of the world turns every search with friends into a plan. Invitees answer yes, no or maybe, then come or don't, again from a written formula. That gave 7,223 plans and 33,963 invitations. 57.4% of invitees came, and 19.5% of the people who said yes didn't.</p>
+        <p>The baseline is what the app already did: count everyone who didn't say no and is free. The model gives each invitee a probability instead, from 16 features such as their answer, the share of others who said yes, whether the place is in their home region, and how often they came to earlier plans.</p>
+        <p>Every number below is out-of-fold: the data is split by person, so each prediction comes from a model that never saw that person. The calibration step is fitted on yet another group of people inside each training part.</p>
+        <ul>
+          <li>The count: ROC-AUC 0.667, Brier 0.192</li>
+          <li>Logistic regression, calibrated: ROC-AUC 0.858, Brier 0.146</li>
+          <li><strong>Gradient-boosted trees, calibrated: ROC-AUC 0.859, Brier 0.146</strong></li>
+          <li>The ceiling, the world's own probabilities: ROC-AUC 0.885, Brier 0.133</li>
+        </ul>
+        <p>Among people who said yes, the model tells the ones who will come from the ones who will flake with an ROC-AUC of 0.701. The count can't do it at all: 0.502.</p>
+
+        <figure>
+          <img src="/assets/attendance-reliability.png" alt="Reliability diagram: the calibrated model's predicted chance of coming sits on the diagonal against how often people actually came, from about 3% to 93%. The most-votes heuristic gives only two values." width="900" height="1050" loading="lazy" style="display:block;width:100%;max-width:520px;margin:0 auto;border-radius:12px;">
+          <figcaption>Predicted chance of coming against how often people came. Of the people the model gives 30%, about 30% came.</figcaption>
+        </figure>
+
+        <h3>The simplest model tied</h3>
+        <p>The logistic regression scored 0.858 against the trees' 0.859. Probably because my formula for who comes is a weighted sum, which is exactly what a logistic regression is. So the app serves the logistic regression. It is stored as a short list of numbers and computed with numpy, which means the backend needed no new package and loads no pickled model:</p>
+<pre><code>def probabilities(X: np.ndarray, parts: list[dict]) -&gt; np.ndarray:
+    out = np.zeros(len(X))
+    for p in parts:
+        missing = np.isnan(X)
+        filled = np.where(missing, p["fill"], X)
+        full = np.hstack([filled, missing[:, p["flag"]].astype(float)])
+        score = ((full - p["mean"]) / p["scale"]) @ p["weights"] + p["bias"]
+        out += np.interp(score, p["steps_x"], p["steps_y"])  <span class="c"># the isotonic staircase</span>
+    return np.clip(out / len(parts), 0.0, 1.0)</code></pre>
+
+        <h3>A decision made after seeing the numbers</h3>
+        <p>In the app, the model runs when the host asks Yalla to suggest times, before anyone has answered. So the version that ships is trained without the answers. That version beats the count before anyone answers on both measures: ROC-AUC 0.695 against 0.517, Brier 0.216 against 0.239. But that count is itself barely better than always guessing the average (0.239 against 0.245), so it is a low bar to clear. We decided which comparison counts as the gate after we had seen the numbers. The project docs say so plainly, and so should this post.</p>
+        <p>The app also never shows one person's chance. A time with only one free invitee gets no number at all.</p>
+
+        <h2>What these scores are</h2>
+        <p>They are scores on made-up people. They show that the features, the training and the evaluation all work, and that the models recover the formulas the world was built on. Whether they help real people is a separate test that needs real searches and real plans. The ranker's real-search test is written down and has not been run yet.</p>
+        <p>Building the world first still paid off. It gave both models the same honest test bed, it made bugs like the padel one visible, and it forced me to write down, in numbers, what "a good model" would even mean before any user arrived.</p>
+
+        <p class="post-note">Yalla is our senior project at NDU, built by a team of two. More about it, and a small version of its group time finder, is on <a href="/#projects">my homepage</a>.</p>
+      </div>
+
+      <footer class="post-end">
+        <a class="link-accent" href="/log/">← All posts</a>
+        <a class="link-accent" href="/log/timetable-solver/">Next: What a timetable solver actually does →</a>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
+    </div>
+  </footer>
+  <script src="/terminal.js" defer></script>
+</body>
+</html>

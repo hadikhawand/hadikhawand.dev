@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Building a food delivery backend in Node.js without Express · Hadi Khawand</title>
+  <meta name="description" content="How Hadi Khawand built DeliveryApp on plain Node.js and MySQL: a hand-written router, body parsing, database-backed sessions and a chainable auth guard.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/log/node-without-express/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hadikhawand.dev/log/node-without-express/">
+  <meta property="og:title" content="Building a food delivery backend in Node.js without Express">
+  <meta property="og:description" content="A hand-written router, body parsing, database-backed sessions and a chainable auth guard, on plain Node.js and MySQL.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/headshot.jpg">
+  <meta property="article:published_time" content="2026-11-21">
+  <meta property="article:author" content="Hadi Khawand">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Building a food delivery backend in Node.js without Express",
+    "description": "A hand-written router, body parsing, database-backed sessions and a chainable auth guard, on plain Node.js and MySQL.",
+    "datePublished": "2026-11-21",
+    "dateModified": "2026-11-21",
+    "url": "https://hadikhawand.dev/log/node-without-express/",
+    "mainEntityOfPage": "https://hadikhawand.dev/log/node-without-express/",
+    "image": "https://hadikhawand.dev/assets/headshot.jpg",
+    "keywords": ["Node.js", "MySQL", "sessions", "routing", "backend"],
+    "author": { "@type": "Person", "name": "Hadi Khawand", "url": "https://hadikhawand.dev/", "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"] }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="/">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="/#experience">Experience</a>
+        <a href="/#projects">Projects</a>
+        <a href="/log/">Log</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
+        <a class="nav-cv" href="/Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="log-wrap">
+    <article>
+      <header class="post-head">
+        <a class="post-back" href="/log/">← All posts</a>
+        <h1>Building a food delivery backend in Node.js without Express</h1>
+        <p class="lede">DeliveryApp has three kinds of users, about 30 routes and no web framework. These are the parts Express usually hands you, written by hand.</p>
+        <div class="log-meta">
+          <span class="post-author"><img src="/assets/headshot.jpg" alt="" width="32" height="32">Hadi Khawand</span>
+          <time datetime="2026-11-21">21 Nov 2026</time>
+          <span>8 min read</span>
+        </div>
+      </header>
+
+      <div class="post-body">
+        <p>DeliveryApp is a food delivery web app with three roles. Customers browse restaurants, build a cart and place or cancel orders. Restaurant managers edit their menu, see incoming orders and assign a courier. Couriers see the deliveries assigned to them and update the status as they go.</p>
+
+        <p>An order moves through four states:</p>
+<pre><code>Submitted  ->  Preparing  ->  On the way  ->  Delivered
+(customer)     (manager       (courier        (courier
+                assigns        picks up)       delivers)
+                courier)</code></pre>
+
+        <p>The server is plain Node.js with MySQL. There is no Express, no Fastify, no templating engine. The whole dependency list is <code>mysql2</code>, <code>bcrypt</code> for password hashing, <code>uuid</code> for IDs, <code>dotenv</code> for config and <code>nodemon</code> for development. Everything else, from routing to cookies to rendering HTML, lives in the project's own files.</p>
+
+        <h2>One function handles every request</h2>
+        <p>Node's <code>http</code> module gives you a single callback for every request that reaches the server. A login, a page load and a request for a CSS file all land in the same place:</p>
+<pre><code>// index.mjs
+const server = http.createServer(appRouter);
+server.listen(PORT);</code></pre>
+        <p>So the first thing to build is something that looks at the method and path and decides which code should run.</p>
+
+        <h2>A router in about 30 lines</h2>
+        <p>The router is a class that keeps a private list of routes. Each route is a method, a path and a handler function:</p>
+<pre><code>export class Router {
+  #routes = [];
+
+  add(method, path, handler) {
+    this.#routes.push({ method: method.toUpperCase(), path, handler });
+  }
+
+  dispatch = async (req, res) =&gt; {
+    const { pathname } = new URL(req.url, `http://${req.headers.host}`);
+    const match = this.#routes.find(
+      (r) =&gt; r.method === req.method &amp;&amp; r.path === pathname
+    );
+    const handler = match ? match.handler : this.#notFound;
+
+    try {
+      await handler(req, res);
+    } catch (error) {
+      errorController(HTTP_STATUS.SERVER_ERROR, req, res);
+    }
+  };
+}</code></pre>
+        <p>Two decisions are baked in here. First, matching is exact: a route only fires when both the method and the path are equal, so there are no path parameters like <code>/orders/:id</code>. IDs travel in the form body instead. Second, every handler runs inside a <code>try/catch</code>. The controllers catch their own errors too, but if something slips past them, the user still gets the 500 page and the server keeps running.</p>
+
+        <h2>Reading a form body</h2>
+        <p>The request body does not arrive as an object. It arrives as a stream of chunks, and for an HTML form it looks like <code>userEmail=karim%40example.com&amp;password=secret123</code>. The parser collects the chunks and decodes them with <code>URLSearchParams</code>:</p>
+<pre><code>export const parseBody = (req) =&gt;
+  new Promise((resolve) =&gt; {
+    let raw = "";
+    req.on("data", (chunk) =&gt; (raw += chunk));
+    req.on("end", () =&gt;
+      resolve(Object.fromEntries(new URLSearchParams(raw)))
+    );
+  });</code></pre>
+        <p>That is the entire body parser. It is short because the app only accepts URL-encoded forms. It also has no size limit yet, which I come back to at the end.</p>
+
+        <h2>Sessions stored in the database</h2>
+        <p>After a successful login the server creates a random token, saves it in a <code>Session</code> table next to the user's ID and role, and sends it back as a cookie:</p>
+<pre><code>const token = randomBytes(32).toString("hex"); // 64 hex characters
+
+await db.query(
+  "INSERT INTO Session (token, userId, role, userEmail, restaurantName) VALUES (?, ?, ?, ?, ?)",
+  [token, user.userId, role, user.email ?? null, user.restaurantName ?? null]
+);
+
+res.setHeader(
+  "Set-Cookie",
+  `token=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=3600`
+);</code></pre>
+        <p>The cookie flags each do one job. <code>HttpOnly</code> keeps JavaScript on the page from reading the token. <code>SameSite=Strict</code> stops the browser from sending it on requests that start on other sites. <code>Max-Age=3600</code> makes it expire after an hour.</p>
+        <p>The token itself means nothing to the client. On every protected request the server reads the cookie and looks the token up in the table. Logging out deletes the row, so that token stops working immediately. A signed JWT works differently: it stays valid until it expires unless you also keep a list of revoked tokens. The cost of the database approach is one extra query per request.</p>
+
+        <h2>Checking who is allowed to do what</h2>
+        <p>Logging in only proves who you are. Each action still has to check whether you are allowed to do it. Cancelling an order is a good example, because three separate things have to be true:</p>
+<pre><code>// POST /order/cancel
+const { userId } = await verifyToken(req);       // 1. someone is logged in
+const { orderId } = await parseBody(req);
+const order = await repository.findById(orderId);
+if (!order) return errorController(HTTP_STATUS.NOT_FOUND, req, res);
+
+if (order.customerId !== userId)                  // 2. it is their order
+  return errorController(HTTP_STATUS.UNAUTHORIZED, req, res);
+
+if (order.status === OrderStatus.ONTHEWAY ||      // 3. it has not left yet
+    order.status === OrderStatus.DELIVERED)
+  return errorController(HTTP_STATUS.BAD_REQUEST, req, res);</code></pre>
+        <p>The second check is the one that is easy to forget. Without it, any logged-in customer could cancel anyone's order just by changing the hidden <code>orderId</code> field in the form.</p>
+        <p>Right now each controller writes these checks inline. To stop repeating them, I wrote a small <code>Guard</code> class where each step either passes or throws:</p>
+<pre><code>const guard = await new Guard().authenticate(req); // is anyone logged in?
+guard.authorize("Customer");                        // is it the right role?
+guard.requireOwnership(order.customerId);           // is it theirs?</code></pre>
+        <p>The controllers don't use it yet. Moving them over is on the list below.</p>
+
+        <h2>Where the rest of the code lives</h2>
+        <ul>
+          <li><code>Controllers/</code> read the request, call the models and repositories, and send the response.</li>
+          <li><code>Filters/</code> has one DTO per form, such as <code>CreateOrderDTO</code> and <code>AssignCourierDTO</code>, so each input is shaped and checked in one place.</li>
+          <li><code>Models/</code> hold the business rules for users, orders, restaurants and deliveries.</li>
+          <li><code>Database/</code> has a single shared MySQL connection pool and one repository per table. Every query uses <code>?</code> placeholders, so user input never gets pasted into SQL.</li>
+          <li><code>Views/</code> are plain HTML files. A small <code>renderHTML</code> helper reads the file and swaps every <code>{{key}}</code> for a value.</li>
+        </ul>
+        <p>The tables are created with <code>CREATE TABLE IF NOT EXISTS</code> when the server starts, so a fresh setup only needs an empty database and a <code>.env</code> file.</p>
+
+        <h2>What is still missing</h2>
+        <p>Writing it by hand also makes the gaps easy to see. These are next:</p>
+        <ul>
+          <li><strong>Escape values in templates.</strong> <code>renderHTML</code> inserts values as they are. If a restaurant name contained <code>&lt;script&gt;</code>, it would run in every customer's browser. Each value needs <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and quotes escaped before it goes into the page.</li>
+          <li><strong>A body size limit.</strong> The parser keeps appending chunks until the request ends, so a client could send a huge body. It should count bytes and reject the request past a few kilobytes.</li>
+          <li><strong>Move the controllers onto the Guard.</strong> One chain instead of the same three checks copied into every handler.</li>
+          <li><strong>A logger.</strong> Errors currently go to <code>console.log</code>. A small <code>Logger</code> class with levels and timestamps, writing to a file as well as the console, would make problems traceable after the fact.</li>
+        </ul>
+        <p>Express's body parser and a template engine like EJS would have covered the first two for me. Building without them meant I had to notice they were missing.</p>
+
+        <p class="post-note">The code is on GitHub: <a href="https://github.com/hadikhawand/DeliveryApp" target="_blank" rel="noopener">hadikhawand/DeliveryApp</a>.</p>
+      </div>
+
+      <footer class="post-end">
+        <a class="link-accent" href="/log/">← All posts</a>
+        <a class="link-accent" href="/log/yalla-friend-requests/">Next: When two people tap at once →</a>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
+    </div>
+  </footer>
+  <script src="/terminal.js" defer></script>
+</body>
+</html>

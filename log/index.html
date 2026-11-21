@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log · Hadi Khawand</title>
+  <meta name="description" content="Notes by Hadi Khawand, software engineer and Computer Science student at NDU, on backend systems, databases and optimization.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/log/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hadikhawand.dev/log/">
+  <meta property="og:title" content="Log · Hadi Khawand">
+  <meta property="og:description" content="Notes on backend systems, databases and optimization.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/headshot.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Log · Hadi Khawand",
+    "url": "https://hadikhawand.dev/log/",
+    "author": { "@type": "Person", "name": "Hadi Khawand", "url": "https://hadikhawand.dev/" },
+    "blogPost": [
+      { "@type": "BlogPosting", "headline": "Two models, one made-up world: a ranker and an attendance model with no real users yet", "url": "https://hadikhawand.dev/log/models-on-a-made-up-world/", "datePublished": "2026-11-21" },
+      { "@type": "BlogPosting", "headline": "One round trip instead of five: psycopg pipeline mode in front of RLS", "url": "https://hadikhawand.dev/log/one-round-trip/", "datePublished": "2026-11-21" },
+      { "@type": "BlogPosting", "headline": "When two people tap at once: building friend requests on Postgres", "url": "https://hadikhawand.dev/log/yalla-friend-requests/", "datePublished": "2026-11-21" },
+      { "@type": "BlogPosting", "headline": "What a timetable solver actually does", "url": "https://hadikhawand.dev/log/timetable-solver/", "datePublished": "2026-11-21" },
+      { "@type": "BlogPosting", "headline": "Building a food delivery backend in Node.js without Express", "url": "https://hadikhawand.dev/log/node-without-express/", "datePublished": "2026-11-21" }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="/">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="/#experience">Experience</a>
+        <a href="/#projects">Projects</a>
+        <a href="/log/" aria-current="page">Log</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
+        <a class="nav-cv" href="/Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="log-wrap">
+    <section class="log-head">
+      <p class="kicker">Log</p>
+      <h1>Notes from what I'm building</h1>
+      <p class="lede">Write-ups on the projects behind this site: backends, databases and the solvers that schedule things.</p>
+    </section>
+
+    <ul class="log-list">
+      <li>
+        <a href="/log/models-on-a-made-up-world/">
+          <div class="log-meta"><time datetime="2026-11-21">21 Nov 2026</time> · 10 min read · <span class="accent">Machine learning</span></div>
+          <h2>Two models, one made-up world: a ranker and an attendance model with no real users yet</h2>
+          <p>Yalla is graded partly on two models I built, and neither had real users to learn from. So I built a world of 400 made-up people first, and wrote down what its scores can and cannot prove.</p>
+        </a>
+      </li>
+      <li>
+        <a href="/log/one-round-trip/">
+          <div class="log-meta"><time datetime="2026-11-21">21 Nov 2026</time> · 7 min read · <span class="accent">Performance</span></div>
+          <h2>One round trip instead of five: psycopg pipeline mode in front of RLS</h2>
+          <p>Yalla's map calls spent almost all their time waiting for the network. Waiting once instead of five times took them from around 600 ms to around 250.</p>
+        </a>
+      </li>
+      <li>
+        <a href="/log/yalla-friend-requests/">
+          <div class="log-meta"><time datetime="2026-11-21">21 Nov 2026</time> · 9 min read · <span class="accent">Databases</span></div>
+          <h2>When two people tap at once: building friend requests on Postgres</h2>
+          <p>Sending, accepting and removing a friend sounds like three small endpoints. The hard part is what happens when two people do it at the same moment.</p>
+        </a>
+      </li>
+      <li>
+        <a href="/log/timetable-solver/">
+          <div class="log-meta"><time datetime="2026-11-21">21 Nov 2026</time> · 7 min read · <span class="accent">Optimization</span></div>
+          <h2>What a timetable solver actually does</h2>
+          <p>Ten courses and twenty time slots already give you about ten trillion possible timetables. Here is how constraint programming finds a valid one without trying them all.</p>
+        </a>
+      </li>
+      <li>
+        <a href="/log/node-without-express/">
+          <div class="log-meta"><time datetime="2026-11-21">21 Nov 2026</time> · 8 min read · <span class="accent">Backend</span></div>
+          <h2>Building a food delivery backend in Node.js without Express</h2>
+          <p>DeliveryApp has three kinds of users, about 30 routes and no web framework. These are the parts Express usually hands you, written by hand.</p>
+        </a>
+      </li>
+    </ul>
+
+    <div class="log-foot">
+      <a class="btn btn-ghost" href="/">← Back to the portfolio</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
+    </div>
+  </footer>
+  <script src="/terminal.js" defer></script>
+</body>
+</html>

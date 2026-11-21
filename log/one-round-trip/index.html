@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One round trip instead of five: psycopg pipeline mode in front of RLS · Hadi Khawand</title>
+  <meta name="description" content="How Hadi Khawand cut Yalla's live map calls from 518-708 ms to 222-321 ms by sending a Postgres transaction in one round trip, without weakening Row Level Security.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="canonical" href="https://hadikhawand.dev/log/one-round-trip/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://hadikhawand.dev/log/one-round-trip/">
+  <meta property="og:title" content="One round trip instead of five: psycopg pipeline mode in front of RLS">
+  <meta property="og:description" content="Live map calls from 518-708 ms to 222-321 ms, by waiting for the database once instead of five times.">
+  <meta property="og:image" content="https://hadikhawand.dev/assets/yalla-map.png">
+  <meta property="article:published_time" content="2026-11-21">
+  <meta property="article:author" content="Hadi Khawand">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "One round trip instead of five: psycopg pipeline mode in front of RLS",
+    "description": "Live map calls from 518-708 ms to 222-321 ms, by waiting for the database once instead of five times.",
+    "datePublished": "2026-11-21",
+    "dateModified": "2026-11-21",
+    "url": "https://hadikhawand.dev/log/one-round-trip/",
+    "mainEntityOfPage": "https://hadikhawand.dev/log/one-round-trip/",
+    "image": "https://hadikhawand.dev/assets/yalla-map.png",
+    "keywords": ["PostgreSQL", "psycopg", "pipeline mode", "Row Level Security", "Supabase", "performance"],
+    "author": { "@type": "Person", "name": "Hadi Khawand", "url": "https://hadikhawand.dev/", "sameAs": ["https://github.com/hadikhawand", "https://linkedin.com/in/hadi-khawand"] }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav container" aria-label="Main">
+      <a class="logo" href="/">hadi<span class="accent">.</span>dev</a>
+      <div class="nav-links">
+        <a href="/#experience">Experience</a>
+        <a href="/#projects">Projects</a>
+        <a href="/log/">Log</a>
+        <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
+        <a class="nav-cv" href="/Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main" class="log-wrap">
+    <article>
+      <header class="post-head">
+        <a class="post-back" href="/log/">← All posts</a>
+        <h1>One round trip instead of five: psycopg pipeline mode in front of RLS</h1>
+        <p class="lede">Yalla's map calls spent almost all their time waiting for the network, not the database. Waiting once instead of five times took them from around 600 ms to around 250.</p>
+        <div class="log-meta">
+          <span class="post-author"><img src="/assets/headshot.jpg" alt="" width="32" height="32">Hadi Khawand</span>
+          <time datetime="2026-11-21">21 Nov 2026</time>
+          <span>7 min read</span>
+        </div>
+      </header>
+
+      <div class="post-body">
+        <p>Yalla is the app my teammate and I are building as our senior project: a map of things to do in Lebanon and a way for friends to plan around it. The database lives on Supabase in Frankfurt. The backend runs in Python with FastAPI and talks to Postgres through psycopg.</p>
+        <p>While working on map speed, I measured where a map call actually spent its time. The query itself took a few milliseconds. The call took 500 to 900.</p>
+
+        <h2>Where the time went</h2>
+        <p>Every read the backend makes for a user has to run under that user's Row Level Security rules. So a read is not one statement. It is a small transaction, roughly like this:</p>
+<pre><code>begin;
+set local role authenticated;               <span class="c">-- act as a signed-in user</span>
+select set_config('request.jwt.claims', ...);  <span class="c">-- tell Postgres who it is</span>
+select ... from activity where ...;         <span class="c">-- the actual query</span>
+commit;</code></pre>
+        <p>The old code sent each statement, then waited for the answer before sending the next one. Each wait is one round trip: a message to Frankfurt and the reply back to Beirut, about 100 to 200 ms. A map call made 4 to 6 of those trips. The database was fast. We were just waiting on the network most of the time.</p>
+
+        <h2>Send everything, wait once</h2>
+        <p>Postgres has a pipeline mode, and psycopg supports it. In a pipeline the client sends several statements without waiting, and reads all the answers at the end. Same statements, same order, same transaction on the database side. Only our waiting changes.</p>
+        <p>The core of the new <code>db.as_user</code> looks like this. I wrote the pipeline design. My teammate later moved it into a shared helper when another reader was added:</p>
+<pre><code>with pool.connection() as conn:
+    conn.autocommit = True  <span class="c"># we send BEGIN / COMMIT ourselves: psycopg's own would wait</span>
+    try:
+        with conn.pipeline():
+            conn.execute(begin)
+            for statement, params in setup:
+                conn.execute(statement, params)
+            yield conn
+            conn.execute("commit")
+    except BaseException:
+        if not conn.closed and conn.info.transaction_status != IDLE:
+            conn.execute("rollback")
+        raise</code></pre>
+        <p>The endpoints run their query inside the block and read the rows after it, so the whole read becomes one trip.</p>
+
+        <h2>The obvious versions didn't work</h2>
+        <p>Before choosing, I prototyped five designs against the real endpoints and counted the trips on the wire with a small relay script. Two results changed the design.</p>
+        <p><strong>psycopg's own pipeline transaction saved nothing.</strong> When psycopg manages the transaction inside a pipeline, it still stops to check the state before deciding whether to commit. The trip count stayed at 5 or 6. That is why the code above turns autocommit on and sends <code>begin</code> and <code>commit</code> itself.</p>
+        <p><strong>Pipelining the writes broke accepting a friend request.</strong> That endpoint checks <code>.rowcount</code> to make sure its update really changed one row. Inside a pipeline, <code>.rowcount</code> is -1 until the answers arrive, so the check stops working. Writes are rarer than reads, so only <code>as_user</code>, the reading path, uses the pipeline. <code>as_admin</code> stayed exactly as it was.</p>
+
+        <h2>The part that could have leaked data</h2>
+        <p>One variant skipped the explicit <code>begin</code> and relied on the implicit transaction. That one I rejected for security, not speed. If anything in the block forced a sync partway through, the implicit transaction would end there, and the next statement would run as the connection's real user, <code>postgres</code>, with Row Level Security not applying. A faster query that can skip the access rules without any error is not an option. With an explicit <code>begin</code>, the role and the claims are the first things inside the transaction, and everything after them runs under them.</p>
+
+        <h2>A second, smaller fix</h2>
+        <p>psycopg prepares a query from its sixth run, and Postgres can switch a prepared query to a generic plan that ignores the actual values. For the map pins that generic plan could not use the category index. With one category on the live database, the value-aware plan took 1.9 ms and the generic one 18.9 ms. Setting <code>prepare_threshold=None</code> keeps the value-aware plans. psycopg is pinned to version 3.3.6, because the design relies on two behaviours I checked on that version.</p>
+
+        <h2>Before and after, on live</h2>
+        <p>Measured in one sitting on the live backend, 21 runs per case, alternating old and new code so that the network's mood affected both the same way:</p>
+        <ul>
+          <li><code>/health</code>: 4 trips to 1, median 608 ms to 134 ms (p95 949 to 207)</li>
+          <li>Map pins for the Chouf: 4 trips to 1, median 518 ms to 222 ms (p95 675 to 298)</li>
+          <li>Filter for Mount Lebanon: 5 trips to 1, median 708 ms to 321 ms (p95 1120 to 369)</li>
+        </ul>
+        <p>Our target was a map query under 500 ms at the 95th percentile. Before the change, 0 of 15 measured map calls met it. After, 12 of 15 did.</p>
+
+        <h2>Testing it by breaking it</h2>
+        <p>I broke the new code on purpose five times, each time writing down first which tests should fail. My predictions were wrong in some detail four times out of five, mostly about how many tests would go red. One break also showed that a claim in my own plan was wrong. A sixth case came from my teammate's review, where a lost connection hid the real error. Writing the prediction first is what made those gaps visible. Without it, a red test just looks like a red test.</p>
+
+        <h2>What it didn't fix</h2>
+        <p>Three of the 15 map calls still miss the 500 ms target at the 95th percentile, including one far region at about a second. Those are dominated by the network and by the size of the query, not by our waiting. Writes still take 3 to 5 trips. Waiting once also doesn't make that one trip any shorter: it still goes to another country and back.</p>
+
+        <p class="post-note">Yalla is our senior project at NDU. More about it, and a small version of its group time finder, is on <a href="/#projects">my homepage</a>.</p>
+      </div>
+
+      <footer class="post-end">
+        <a class="link-accent" href="/log/">← All posts</a>
+        <a class="link-accent" href="/log/models-on-a-made-up-world/">Next: Two models, one made-up world →</a>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2026</span> Hadi Khawand</span>
+      <button type="button" class="mono footer-term" data-open-terminal>&gt;_ Psst… open the terminal <kbd>`</kbd></button>
+    </div>
+  </footer>
+  <script src="/terminal.js" defer></script>
+</body>
+</html>

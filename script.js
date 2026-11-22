@@ -114,3 +114,24 @@
   const y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
 })();
+
+// Header: Beirut clock and a scroll progress line.
+(function () {
+  const clock = document.querySelector('#nav-clock b');
+  if (clock) {
+    const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Beirut', hour: '2-digit', minute: '2-digit' });
+    const tick = () => { clock.textContent = fmt.format(new Date()); };
+    tick();
+    setInterval(tick, 15000);
+  }
+  const line = document.getElementById('scroll-line');
+  if (line) {
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      line.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+    };
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    update();
+  }
+})();

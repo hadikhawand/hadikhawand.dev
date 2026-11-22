@@ -45,15 +45,17 @@
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-header">
+    <div class="scroll-line" id="scroll-line" aria-hidden="true"></div>
     <nav class="nav container" aria-label="Main">
       <a class="logo" href="#top">hadi<span class="accent">.</span>dev</a>
       <div class="nav-links">
-        <a href="#experience">Experience</a>
-        <a href="#engineering">Engineering</a>
-        <a href="#projects">Projects</a>
+        <a href="#experience"><span class="nav-num">02</span>Experience</a>
+        <a href="#engineering"><span class="nav-num">03</span>Engineering</a>
+        <a href="#projects"><span class="nav-num">04</span>Projects</a>
         <a href="/log/">Log</a>
-        <a href="#skills">Skills</a>
-        <a href="#contact">Contact</a>
+        <a href="#skills"><span class="nav-num">05</span>Skills</a>
+        <a href="#contact"><span class="nav-num">06</span>Contact</a>
+        <span class="nav-clock mono" id="nav-clock" title="Local time in Beirut">Beirut <b>--:--</b></span>
         <button type="button" class="nav-term" data-open-terminal aria-label="Open terminal" title="Open terminal (press `)">&gt;_</button>
         <a class="nav-cv" href="Hadi_Khawand_CV.pdf" target="_blank" rel="noopener">Résumé</a>
       </div>
@@ -127,6 +129,12 @@
         <p>I'm Hadi Khawand, a software engineer at Technosoft in Beirut and a Computer Science student at Notre Dame University &ndash; Louaize (NDU) in Lebanon. I graduate in Fall 2026 with a 3.99 GPA.</p>
         <p>Most of my work sits behind the screen: database design, APIs, and the rules that decide who can see and change what. At Technosoft I write AML that turns engineers' inputs into parametric 3D models. For Yalla, our senior project, I built the friends system, map search, the flow for picking a time, and two of the app's machine learning models.</p>
         <p>I also write optimization models, like the MiniZinc solver that fits a university's courses into a week with no clashes. I write up what I build, and what broke along the way, in <a href="/log/">my log</a>.</p>
+        <dl class="stats">
+          <div><dt>GPA, B.S. Computer Science</dt><dd>3.99</dd></div>
+          <div><dt>ML models live in Yalla</dt><dd>2</dd></div>
+          <div><dt>database trips per map call</dt><dd>4<span>&rarr;</span>1</dd></div>
+          <div><dt>technical write-ups</dt><dd>5</dd></div>
+        </dl>
       </section>
 
       <!-- Experience -->

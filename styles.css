@@ -1,3 +1,12 @@
+/* Fonts: self-hosted (latin, variable weight) with size-matched fallbacks so the swap doesn't move the layout */
+@font-face { font-family: "Inter"; src: url("/assets/fonts/inter.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Space Grotesk"; src: url("/assets/fonts/space-grotesk.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("/assets/fonts/jetbrains-mono.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+@font-face { font-family: "Inter Fallback"; src: local("Arial"); size-adjust: 107.48%; ascent-override: 90.14%; descent-override: 22.44%; line-gap-override: 0%; }
+@font-face { font-family: "Space Grotesk Fallback"; src: local("Arial"); font-weight: 300 600; size-adjust: 111.29%; ascent-override: 88.42%; descent-override: 26.24%; line-gap-override: 0%; }
+@font-face { font-family: "Space Grotesk Fallback"; src: local("Arial Bold"), local("Arial-BoldMT"); font-weight: 700; size-adjust: 102.73%; ascent-override: 95.79%; descent-override: 28.42%; line-gap-override: 0%; }
+@font-face { font-family: "JetBrains Mono Fallback"; src: local("Consolas"), local("Menlo"); size-adjust: 109.13%; ascent-override: 93.47%; descent-override: 27.49%; line-gap-override: 0%; }
+
 :root {
   --bg: #0B0D10;
   --surface: #101318;
@@ -10,9 +19,9 @@
   --muted: #9AA3AE;
   --accent: #5EEAD4;
   --danger: #F87171;
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk", var(--font-sans);
-  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --font-sans: Inter, "Inter Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Space Grotesk Fallback", var(--font-sans);
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, Consolas, monospace;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
